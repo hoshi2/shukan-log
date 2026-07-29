@@ -28,11 +28,33 @@ export function loadState() {
 export function saveState(state) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state))
+    localStorage.setItem(KEY + '-at', String(Date.now()))
     return true
   } catch (e) {
     console.error('保存失敗', e)
     return false
   }
+}
+
+// 最後にローカル保存した時刻（ミリ秒）。無ければ 0。
+export function loadSavedAt() {
+  const n = Number(localStorage.getItem(KEY + '-at'))
+  return Number.isFinite(n) ? n : 0
+}
+
+// チェック・数値・第2数値を1つの値にまとめる（既存データを壊さない）
+// 何も無ければ undefined（＝クリア）、チェック無しの単独数値はスカラーで返す。
+export function packVal(c, n, n2) {
+  const hasC = c === true || c === false
+  const hasN = n !== null && n !== undefined && n !== '' && !Number.isNaN(Number(n))
+  const hasN2 = n2 !== null && n2 !== undefined && n2 !== '' && !Number.isNaN(Number(n2))
+  if (!hasC && !hasN && !hasN2) return undefined
+  if (!hasC && !hasN2 && hasN) return Number(n)
+  const obj = {}
+  if (hasC) obj.c = c
+  if (hasN) obj.n = Number(n)
+  if (hasN2) obj.n2 = Number(n2)
+  return obj
 }
 
 // ---- 日付ユーティリティ ----

@@ -3,7 +3,7 @@ import { Check, X, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
 import { todayStr, catColor } from '../data/initialData.js'
 import {
   weekdayIdx, dayVal, isDone, dayRate, shortNum, stepFor, stepForUnit,
-  habitsForMonth, checkVal, numVal, sub2Val, weekRate, monthRate, calcStreak,
+  habitsForMonth, checkVal, numVal, sub2Val, packVal, weekRate, monthRate, calcStreak,
 } from '../utils/calc.js'
 import '../styles/grid.css'
 
@@ -95,9 +95,11 @@ export default function GridView({ state, setState }) {
   }
 
   function cycleCheck(date, id) {
-    const cur = dayVal(state.days, date, id)
+    const raw = dayVal(state.days, date, id)
+    const cur = checkVal(raw)
     const next = cur === undefined ? true : cur === true ? false : undefined
-    setVal(date, id, next)
+    // チェックだけ回し、数値は絶対に消さない
+    setVal(date, id, packVal(next, numVal(raw), sub2Val(raw)))
   }
 
   function openEdit(date, habit) {
@@ -110,18 +112,18 @@ export default function GridView({ state, setState }) {
   const hasSub = edit && edit.habit.sub
   function saveEdit() {
     if (!edit) return
+    const raw = dayVal(state.days, edit.date, edit.habit.id)
     const n = edit.value === '' ? undefined : Number(edit.value)
     if (combined) {
-      if (edit.check === undefined && n === undefined) setVal(edit.date, edit.habit.id, undefined)
-      else setVal(edit.date, edit.habit.id, { c: edit.check, n })
+      // できた/できない ＋ 数値（既存の第2数値は保持）
+      setVal(edit.date, edit.habit.id, packVal(edit.check, n, sub2Val(raw)))
     } else if (edit.habit.sub) {
+      // 数値2つ（既存のチェックは保持）
       const n2 = edit.value2 === '' ? undefined : Number(edit.value2)
-      const obj = {}
-      if (n !== undefined) obj.n = n
-      if (n2 !== undefined) obj.n2 = n2
-      setVal(edit.date, edit.habit.id, Object.keys(obj).length ? obj : undefined)
+      setVal(edit.date, edit.habit.id, packVal(checkVal(raw), n, n2))
     } else {
-      setVal(edit.date, edit.habit.id, n)
+      // 数値を入れたら「✗（やらなかった）」は解除。第2数値は保持
+      setVal(edit.date, edit.habit.id, packVal(undefined, n, sub2Val(raw)))
     }
     setEdit(null)
   }
@@ -223,13 +225,16 @@ export default function GridView({ state, setState }) {
                   // ①「できた/できない」のみ
                   if (h.type === 'check' && !h.num) {
                     const c = checkVal(val)
+                    const n = numVal(val)
                     return (
                       <td key={dd.d} className={cellCls}>
                         <button
                           className={'hg-check' + (c === true ? ' yes' : c === false ? ' no' : '')}
                           onClick={() => cycleCheck(dd.date, h.id)} aria-label={h.name}
                         >
-                          {c === true ? <Check size={15} strokeWidth={3} /> : c === false ? <X size={14} strokeWidth={3} /> : ''}
+                          {c === true ? <Check size={15} strokeWidth={3} />
+                            : c === false ? <X size={14} strokeWidth={3} />
+                            : n !== null ? <span className="hg-leftnum">{shortNum(h, val)}</span> : ''}
                         </button>
                       </td>
                     )

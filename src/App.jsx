@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { LayoutGrid, Trophy, Settings } from 'lucide-react'
 import { buildInitialState, migrateState, todayStr } from './data/initialData.js'
-import { loadState, saveState, weekdayJP } from './utils/calc.js'
+import { loadState, saveState, loadSavedAt, weekdayJP } from './utils/calc.js'
 import { loadCloud, connectCloud, cloudPull, cloudPush, cloudSubscribe } from './utils/cloud.js'
 import GridView from './components/GridView.jsx'
 import Dashboard from './components/Dashboard.jsx'
@@ -51,11 +51,13 @@ export default function App() {
       try {
         const remote = await cloudPull(c.code)
         if (cancelled) return
-        if (remote && remote.state) {
-          setState(migrateState(remote.state) || remote.state)   // クラウドの方を採用
+        const localAt = loadSavedAt()
+        // クラウドがローカルより新しい時だけ採用。古いクラウドで上書きしない
+        if (remote && remote.state && (remote.updatedAt || 0) >= localAt) {
+          setState(migrateState(remote.state) || remote.state)
           lastPush.current = remote.updatedAt
         } else {
-          const ts = await cloudPush(c.code, stateRef.current)    // 初回はこの端末のデータで種をまく
+          const ts = await cloudPush(c.code, stateRef.current)    // ローカルの方が新しい／初回はこの端末で種をまく
           lastPush.current = ts
         }
         cloudReady.current = true

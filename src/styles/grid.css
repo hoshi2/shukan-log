@@ -87,6 +87,10 @@
 }
 .hg-check.yes { background: var(--green); border-color: var(--green); color: #fff; }
 .hg-check.no { background: var(--red-dim); border-color: #e9a9a9; color: var(--red); }
+.hg-leftnum {
+  font-family: 'Space Grotesk', sans-serif; font-size: 10px; font-weight: 700;
+  color: var(--text2); line-height: 1;
+}
 
 .hg-num {
   min-width: 32px; height: 26px; padding: 0 4px; margin: 0 auto;
