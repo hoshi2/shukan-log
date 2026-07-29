@@ -116,7 +116,12 @@ export function countsForRate(habit) {
 // その習慣がその日に「達成」したか
 export function isDone(habit, val) {
   if (val === undefined || val === null || val === '') return false
-  if (habit.type === 'check') return checkVal(val) === true
+  if (habit.type === 'check') {
+    if (checkVal(val) === true) return true
+    // できた/できない＋数値：数値が入っていれば（✗以外は）「やった」扱い
+    if (habit.num && checkVal(val) !== false && numVal(val) !== null) return true
+    return false
+  }
   if (habit.type === 'record') return false
   // number
   const n = numVal(val)

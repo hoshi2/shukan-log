@@ -115,8 +115,9 @@ export default function GridView({ state, setState }) {
     const raw = dayVal(state.days, edit.date, edit.habit.id)
     const n = edit.value === '' ? undefined : Number(edit.value)
     if (combined) {
-      // できた/できない ＋ 数値（既存の第2数値は保持）
-      setVal(edit.date, edit.habit.id, packVal(edit.check, n, sub2Val(raw)))
+      // 数値を入れたら自動で「できた（緑）」。明示的に✗を選んだ時だけ✗
+      const check = edit.check !== undefined ? edit.check : (n !== undefined ? true : undefined)
+      setVal(edit.date, edit.habit.id, packVal(check, n, sub2Val(raw)))
     } else if (edit.habit.sub) {
       // 数値2つ（既存のチェックは保持）
       const n2 = edit.value2 === '' ? undefined : Number(edit.value2)
@@ -245,7 +246,8 @@ export default function GridView({ state, setState }) {
                     const c = checkVal(val)
                     const n = numVal(val)
                     const has = c !== undefined || n !== null
-                    const cls = !has ? ' empty' : c === true ? ' ok' : c === false ? ' miss' : ''
+                    // 数字が入っていれば達成（緑）、✗は赤、空は＋
+                    const cls = !has ? ' empty' : c === false ? ' miss' : ' ok'
                     return (
                       <td key={dd.d} className={cellCls}>
                         <button className={'hg-num' + cls} onClick={() => openEdit(dd.date, h)}>
