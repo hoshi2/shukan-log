@@ -1,6 +1,6 @@
 {
-  "name": "26 習慣コマンド",
-  "short_name": "26",
+  "name": "習慣ログ",
+  "short_name": "習慣ログ",
   "description": "1ヶ月ガチで習慣化する記録アプリ",
   "start_url": "./",
   "scope": "./",
